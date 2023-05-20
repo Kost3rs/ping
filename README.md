@@ -9,5 +9,5 @@
 
 - packets that were lost.
 
-- time delay of consequtive packets that were lost (interruption).
+- time delay of consecutive packets that were lost (interruption).
    - First and last lost packet.
