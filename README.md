@@ -1,9 +1,9 @@
 ## Ping Test (terminal based)
+#
 **INPUT**
 - address/host you want to ping.
 - maximum allowed ping delay (ms).
 #
-
 **OUTPUT (with timestamps)**
 - packets that exceeded your limit.
 
