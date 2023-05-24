@@ -1,4 +1,4 @@
-## Ping Test (terminal based)
+## Ping Tester (terminal based)
 
 **INPUT**
 - address/host you want to ping.
@@ -11,3 +11,6 @@
 
 - time delay of consecutive packets that were lost (interruption).
    - First and last lost packet.
+
+**GRAPH WINDOW**
+- graph rtt over time
