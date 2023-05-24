@@ -8,9 +8,9 @@ from datetime import datetime
 
 
 class PingTester:
-    def __init__(self, addr, round_trip_time):
+    def __init__(self, addr, rtt):
         self.addr = addr
-        self.round_trip_time = round_trip_time
+        self.round_trip_time = rtt
         self.packets_delayed = []
         self.packets_lost = []
         self.packets_cont_loss = []
@@ -120,8 +120,8 @@ class PingTester:
 
 
 if __name__ == '__main__':
-    addr = input("Enter address: ")
+    address = input("Enter address: ")
     round_trip_time = int(input("Enter maximum acceptable ping: "))
 
-    tester = PingTester(addr, round_trip_time)
+    tester = PingTester(address, round_trip_time)
     tester.run()
