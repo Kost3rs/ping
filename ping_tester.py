@@ -22,16 +22,36 @@ class PingTester:
 
         pn.EXCEPTIONS = True  # Enable exceptions from the ping3 lib
 
-    def create_graph(self):
+    def init_graph(self):
+        # Set the FiveThirtyEight style
+        plt.style.use('fivethirtyeight')
+
+        # Create a figure and axis
+        fig, ax = plt.subplots(figsize=(7, 5))
+
+        # Adjust the size of the graph area within the figure
+        left, bottom, right, top = .12, .11, .5, .8
+        ax.set_position([left, bottom, right, top])
+
+        # Create the animation
+        _ = FuncAnimation(fig, self.ping_test, interval=1000, cache_frame_data=False)
+
+        # Format x-axis tick labels as time in "hh:mm:ss" format
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
+
+        # Show plot
+        plt.show()
+
+
+    def update_graph(self):
         # Clear the previous plot
         plt.cla()
 
         # Convert string time (H:M:S) to numerical format
         today = datetime.today().date()
-        lc_time = [datetime.combine(today, t) for t in self.graph_time_period]
 
-        # Convert datetime objects to numerical format
-        lc_num = mdates.date2num(lc_time)
+        # Change each element of array to datetime format
+        lc_time = [datetime.combine(today, t) for t in self.graph_time_period]
 
         # Plot the data
         plt.plot(lc_time, self.graph_packets_rtt)
@@ -42,16 +62,13 @@ class PingTester:
             end_datetime = datetime.combine(today, end)
             plt.axvspan(start_datetime, end_datetime, facecolor="tomato", alpha=0.3)
 
-        # # Set date format for x axis
-        # ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
-        #
-        # # Plot graph
-        # ax.plot(lc_num, self.graph_packets_rtt)
-
         # Set plot title and labels
         plt.xlabel("LOCAL TIME")
         plt.ylabel("RTT")
-        plt.title("Round Trip Time Over Time")
+        plt.title(address)
+
+        # Auto-adjust the x-axis tick labels
+        plt.gcf().autofmt_xdate()
 
 
     @staticmethod
@@ -77,11 +94,13 @@ class PingTester:
             self.graph_packets_rtt.append(rtt)
             self.is_host_unknown_error(False)
 
+        # Lost packet
         except pn.errors.Timeout:
             self.packets_lost.append(f"packet_number={self.packet_id}   Loss   local_time_sent={local_time}")
             self.graph_packets_rtt.append(np.nan)
             self.is_host_unknown_error(False)
 
+        # Lost packets/Interruption (continuous)
         except pn.errors.HostUnknown:
             if self.packet_id > 2:
                 self.graph_packets_rtt.append(np.nan)
@@ -91,39 +110,32 @@ class PingTester:
                 exit()
 
         finally:
-            # if self.exception_events == [False, True]:
-            #     self.time_start = local_time
-            #
-            # elif self.exception_events == [True, False]:
-            #     time_end = datetime.now().time().replace(microsecond=0)
-            #     duration = datetime.combine(datetime.today(), time_end) - datetime.combine(datetime.today(), self.time_start)
-            #     self.packets_cont_loss.append(f"intr_start={self.time_start}   intr_end={time_end}   duration={duration}")
-            #     self.graph_interrupt_period.append((self.time_start, time_end))
+            # Check for stream of lost packets(interruption) and save time data
+            if self.exception_events == [False, True]:
+                self.time_start = local_time
 
-            self.create_graph()
+            elif self.exception_events == [True, False]:
+                time_end = datetime.now().time().replace(microsecond=0)
+                duration = datetime.combine(datetime.today(), time_end) - datetime.combine(datetime.today(), self.time_start)
+                self.packets_cont_loss.append(f"intr_start={self.time_start}   intr_end={time_end}   duration={duration}")
+                self.graph_interrupt_period.append((self.time_start, time_end))
+
+            self.update_graph()
             self.packet_id += 1
 
     def run(self):
-        print(f"Pinging {self.addr} ...   (ctrl+c to terminate)")
+        print(f"Pinging {self.addr}...")
 
-        try:
-            # Create a figure and axis
-            fig, ax = plt.subplots()
+        self.init_graph()
 
-            # Create the animation
-            _ = FuncAnimation(fig, self.ping_test, interval=1000, cache_frame_data=False)
+        # Print captured data
+        self.display_array(self.packets_delayed, f"Total delays: {len(self.packets_delayed)}\n")
+        self.display_array(self.packets_lost, f"Total losses: {len(self.packets_lost)}\n")
+        self.display_array(self.packets_cont_loss, f"Total interruptions: {len(self.packets_cont_loss)}\n")
 
-            plt.show()
-            input("Press Enter to exit...")
-            raise KeyboardInterrupt
-        except KeyboardInterrupt:
-            self.display_array(self.packets_delayed, f"Total delays: {len(self.packets_delayed)}\n")
-            self.display_array(self.packets_lost, f"Total losses: {len(self.packets_lost)}\n")
-            self.display_array(self.packets_cont_loss, f"Total interruptions: {len(self.packets_cont_loss)}\n")
-
-
-
-
+        # Quit program
+        input("Press Enter to exit...")
+        exit()
 
 
 if __name__ == '__main__':
