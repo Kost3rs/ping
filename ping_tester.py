@@ -1,10 +1,9 @@
 import ping3 as pn
-from time import sleep
-from os import system
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+from matplotlib.animation import FuncAnimation
 
 
 class PingTester:
@@ -53,14 +52,17 @@ class PingTester:
 
         plt.show()
 
-    def display_array(self, arr, text):
+    @staticmethod
+    def display_array(arr, text):
         for elem in arr:
             print(elem)
         print(text)
 
+    # Identify continuous loss
     def is_host_unknown_error(self, exc):
         self.exception_events[0], self.exception_events[1] = self.exception_events[1], exc
 
+    # Main ping method
     def ping_test(self):
         try:
             local_time = datetime.now().time().replace(microsecond=0)
@@ -99,7 +101,6 @@ class PingTester:
                     f"intr_start={self.time_start}   intr_end={time_end}   duration={duration}")
                 self.graph_interrupt_period.append((self.time_start, time_end))
 
-            sleep(1)
             self.packet_id += 1
 
     def run(self):
@@ -115,8 +116,8 @@ class PingTester:
             self.display_array(self.packets_cont_loss, f"Total interruptions: {len(self.packets_cont_loss)}\n")
 
         self.create_graph()
-
-        system("pause")
+        input("Press Enter to exit...")
+        exit()
 
 
 if __name__ == '__main__':
